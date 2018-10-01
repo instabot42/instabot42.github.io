@@ -21,17 +21,49 @@ happen, post messages to a slack channel.
 Here are some sample messages to give you a favour (eg, imagine texting the
   following text to the bot)...
 
-```php
+#### Place a limit order
+
 Place a simple limit order to buy 1.5 BTC on Bitfinex on the BTCUSD pair.
 The order will be placed $20 below the current price.
 
-bitfinex(BTCUSD) { limitOrder(side=buy, offset=20, amount=1.5); }
-
+```js
+bitfinex(BTCUSD) {
+  limitOrder(side=buy, offset=20, amount=1.5);
+}
 ```
 
-```c++
+#### A simple market buy
+
 Market buy BTC. Use 20% of my total balance for the purchase.
-bitfinex(BTCUSD) { marketOrder(side=buy, amount=20%); }
+
+```js
+bitfinex(BTCUSD) {
+  marketOrder(side=buy, amount=20%);
+}
+```
+
+
+#### A more complex example.
+
+We want to be long 10,000 contracts in the end, on Deribit's BTC-PERPETUAL
+contract, so this will adjust our position to +10,000 contracts
+(even if we had an open position already - long or short). This example
+uses multiple commands to achieve it's goal...
+
+* Try and enter a long position using a scaled order (30 orders spread over
+a $50 range, starting just below the current price).
+* Wait an hour and cancel any unfilled orders.
+* Place a market order to reach the final target position size if needed.
+* Finally, send an SMS with our account balance and PnL info to our phone.
+
+```js
+deribit(BTC-PERPETUAL) {
+  scaledOrder(from=5, to=55, orderCount=30, position=10000, tag=example);
+  wait(1h);
+  cancelOrders(tagged, example)
+  marketOrder(position=10000);
+  account();
+}
 ```
 
 
