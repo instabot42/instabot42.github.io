@@ -29,7 +29,7 @@ bitfinex(BTCUSD) { limitOrder(side=buy, offset=20, amount=1.5); }
 
 ```
 
-```
+```ruby
 Market buy BTC. Use 20% of my total balance for the purchase.
 bitfinex(BTCUSD) { marketOrder(side=buy, amount=20%); }
 ```
