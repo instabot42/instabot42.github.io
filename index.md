@@ -21,7 +21,7 @@ happen, post messages to a slack channel.
 Here are some sample messages to give you a favour (eg, imagine texting the
   following text to the bot)...
 
-```
+```php
 Place a simple limit order to buy 1.5 BTC on Bitfinex on the BTCUSD pair.
 The order will be placed $20 below the current price.
 
@@ -29,7 +29,7 @@ bitfinex(BTCUSD) { limitOrder(side=buy, offset=20, amount=1.5); }
 
 ```
 
-```ruby
+```c++
 Market buy BTC. Use 20% of my total balance for the purchase.
 bitfinex(BTCUSD) { marketOrder(side=buy, amount=20%); }
 ```
