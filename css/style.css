@@ -7,14 +7,14 @@ body {
 }
 
 body, p, a, div, th, td {
-  font-family: "Source Sans Pro", sans-serif;
+  font-family: 'Lato', sans-serif;
   font-weight: 400;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 td.code {
   font-size: 14px;
-  font-family: "Source Code Pro", monospace;
+  font-family: "Courier New", Courier, monospace;
   font-style: normal;
   font-weight: 400;
 }
@@ -30,7 +30,6 @@ p {
 }
 
 h1 {
-  font-family: "Source Sans Pro Semibold", sans-serif;
   font-weight: normal;
   font-size: 44px;
   line-height: 50px;
@@ -39,7 +38,6 @@ h1 {
 }
 
 h2 {
-  font-family: "Source Sans Pro", sans-serif;
   font-weight: normal;
   font-size: 24px;
   line-height: 40px;
@@ -53,7 +51,6 @@ section {
 }
 
 section h1 {
-  font-family: "Source Sans Pro", sans-serif;
   font-weight: 700;
   font-size: 32px;
   line-height: 40px;
@@ -67,31 +64,27 @@ article {
 }
 
 article h1 {
-  font-family: "Source Sans Pro Bold", sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 24px;
   line-height: 26px;
 }
 
 article h2 {
-  font-family: "Source Sans Pro", sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 18px;
   line-height: 24px;
   margin: 0 0 10px 0;
 }
 
 article h3 {
-  font-family: "Source Sans Pro", sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 16px;
   line-height: 18px;
   margin: 0 0 10px 0;
 }
 
 article h4 {
-  font-family: "Source Sans Pro", sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
   line-height: 16px;
   margin: 0 0 8px 0;
@@ -106,7 +99,6 @@ table {
 th {
   background-color: #f5f5f5;
   text-align: left;
-  font-family: "Source Sans Pro", sans-serif;
   font-weight: 700;
   padding: 4px 8px;
   border: #e0e0e0 1px solid;
@@ -145,7 +137,6 @@ td {
 }
 
 #apidoc h1 {
-  font-family: "Source Sans Pro", sans-serif;
   font-weight: 700;
   font-size: 32px;
   line-height: 40px;
@@ -155,8 +146,7 @@ td {
 }
 
 #apidoc h2 {
-  font-family: "Source Sans Pro Bold", sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 22px;
   line-height: 26px;
   padding-top: 14px;
@@ -164,6 +154,7 @@ td {
 
 #header h1, #header h2, #header h3, #header h4, #header h5 {
   margin-top: 1em;
+  font-weight: 700;
 }
 
 /* ------------------------------------------------------------------------------------------
@@ -196,8 +187,8 @@ pre.language-html {
 }
 
 .type {
-  font-family: "Source Sans Pro", sans-serif;
-  font-weight: 600;
+  font-family: 'Lato', sans-serif;
+  font-weight: 700;
   font-size: 15px;
   display: inline-block;
   margin: 0 0 5px 0;
@@ -235,8 +226,8 @@ pre.language-api .pun {
 
 pre code {
   display: block;
-  font-size: 14px;
-  font-family: "Source Code Pro", monospace;
+  font-size: 13px;
+  font-family: "Courier New", Courier, monospace;
   font-style: normal;
   font-weight: 400;
   word-wrap: normal;
@@ -288,7 +279,6 @@ pre code.sample-request-response-json {
   padding: 5px 15px;
   border: 1px solid #e5e5e5;
   width: 190px;
-  font-family: "Source Sans Pro", sans-serif;
   font-weight: 700;
   font-size: 16px;
   background-color: #ffffff;
@@ -533,6 +523,14 @@ p.deprecated span{
   font-size: 18px;
     margin-bottom: 1em;
 }
+
+#donate {
+  padding: 1em 1em;
+  background: #ffffd0;
+  margin-top: 2em;
+}
+
+#donate h2 { margin-top: 0;}
 
 /* ------------------------------------------------------------------------------------------
  * Print
