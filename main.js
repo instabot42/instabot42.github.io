@@ -224,7 +224,6 @@ require([
               var entry_tags = entry.match(/id="api-([^\-]+)(?:-(.+))?"/);    // Find the group and name in the id property
               var group = (entry_tags ? entry_tags[1] : null);
               var name = (entry_tags ? entry_tags[2] : null);
-              console.log('topic', level, title, group, name, entry);
 
               if (level==1 && title && group)  {
                   nav.splice(index, 0, {
@@ -253,11 +252,8 @@ require([
     }
 
     // Mainmenu Header entry
-    console.log(apiProject.header);
     if (apiProject.header) {
-        console.log('here');
         var found_level1 = add_nav(nav, apiProject.header.content, 0); // Add level 1 and 2 titles
-        console.log('here', nav);
         if (!found_level1) {    // If no Level 1 tags were found, make a title
             nav.unshift({
                 group: '_',
