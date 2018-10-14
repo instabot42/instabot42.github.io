@@ -232,6 +232,7 @@ pre code {
   font-weight: 400;
   word-wrap: normal;
   white-space: pre;
+  color: yellow;
 }
 
 pre code.sample-request-response-json {
