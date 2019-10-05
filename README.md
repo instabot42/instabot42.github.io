@@ -1,7 +1,6 @@
 ## Instabot Trader Docs
 
-https://instabot42.github.io/
-
+https://alertatron.com/docs/automated-trading/quick-start-guide
 
 ### Support or Contact
 
