@@ -229,10 +229,19 @@
               this.processOrderBook(data[1]);
             } else if (channel === this.tradeChannel) {
               const type = data[1];
-              if (type === 'te' || type === 'tu') {
-                this.processTrade(data[2]);
-              } else {
-                this.processTrade(data[1]);
+              switch (type) {
+                case 'te':
+                  // trade executed
+                  this.processTrade(data[2]);
+                  break;
+
+                case 'tu':
+                  // trade execution updated - ignore
+                  break;
+
+                default:
+                  this.processTrade(data[1]);
+                  break;
               }
             }
           } else {
