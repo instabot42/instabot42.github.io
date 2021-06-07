@@ -9,6 +9,7 @@
 <body>
   <div class="font-mono" x-data="orderBook()" x-init="init()">
     <div class="flex flex-row bg-purple-300 text-xs px-1 py-1">
+      <div class="flex-initial px-1">Bitfinex <span class="font-sans text-red-600">&#10501;</span></div>
       <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': symbol === 'tBTCUSD'}" @click="symbol = 'tBTCUSD'">BTCUSD</div>
       <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': symbol === 'tETHUSD'}" @click="symbol = 'tETHUSD'">ETHUSD</div>
       <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': symbol === 'tXMRUSD'}" @click="symbol = 'tXMRUSD'">XMRUSD</div>
@@ -18,6 +19,7 @@
       <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': precision === 'P0'}" @click="precision = 'P0'">Tight</div>
       <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': precision === 'P1'}" @click="precision = 'P1'">Medium</div>
       <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': precision === 'P2'}" @click="precision = 'P2'">Wide</div>
+      <div class="flex-grow px-4 text-right"><span class="font-sans text-red-600">&#9829;</span> Instabot</div>
     </div>
 
     <div style="max-width: 768px" class="flex px-1 py-1 ">
