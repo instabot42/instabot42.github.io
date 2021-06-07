@@ -7,8 +7,20 @@
 </head>
 
 <body>
-  <div class="px-1 py-1 font-mono" x-data="orderBook()" x-init="init()">
-    <div class="flex">
+  <div class="font-mono" x-data="orderBook()" x-init="init()">
+    <div class="flex flex-row bg-purple-300 text-xs px-1 py-1">
+      <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': symbol === 'tBTCUSD'}" @click="symbol = 'tBTCUSD'">BTCUSD</div>
+      <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': symbol === 'tETHUSD'}" @click="symbol = 'tETHUSD'">ETHUSD</div>
+      <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': symbol === 'tXMRUSD'}" @click="symbol = 'tXMRUSD'">XMRUSD</div>
+      <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': symbol === 'tETHBTC'}" @click="symbol = 'tETHBTC'">ETHBTC</div>
+      <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': symbol === 'tXMRBTC'}" @click="symbol = 'tXMRBTC'">XMRBTC</div>
+      <div class="flex-initial px-4">::</div>
+      <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': precision === 'P0'}" @click="precision = 'P0'">Tight</div>
+      <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': precision === 'P1'}" @click="precision = 'P1'">Medium</div>
+      <div :class="{ 'flex-initial': true, 'px-1': true, 'font-bold': precision === 'P2'}" @click="precision = 'P2'">Wide</div>
+    </div>
+
+    <div class="flex px-1 py-1 ">
       <div class="w-3/4 text-xs">
 
         <table class="w-full">
@@ -38,7 +50,7 @@
             </template>
 
             <tr>
-              <td class="text-xs px-8 py-1 text-center text-2xl font-bold" colspan="3" x-text="lastPrice.toFixed(1)"></td>
+              <td class="text-xs px-8 py-1 text-center text-2xl font-bold" colspan="3" x-text="lastPrice.toFixed(lastPricePrecision)"></td>
             </tr>
 
             <template x-for="row in getKeys(bids)" :key="row">
@@ -108,7 +120,7 @@
             <template x-for="item in tradeHistory" :key="item">
               <tr :style="tradeStyle(item.side, item.amt)">
                 <td x-text="item.time"></td>
-                <td x-text="item.price.toFixed(0)"></td>
+                <td x-text="item.price.toFixed(lastPricePrecision)"></td>
                 <td class="text-right font-bold" x-text="item.amt.toFixed(4)"></td>
               </tr>
             </template>
@@ -147,6 +159,40 @@
   <script>
     function orderBook() {
       return {
+        symbol: 'tBTCUSD',
+        precision: 'P1',
+        bigTrade: 10,
+        smallTrade: 0.1,
+
+        symbolMap: {
+          tBTCUSD: {
+            bigTrade: 10,
+            smallTrade: 0.1,
+            pricePrecision: 0,
+          },
+          tETHUSD: {
+            bigTrade: 100,
+            smallTrade: 1,
+            pricePrecision: 2,
+          },
+          tXMRUSD: {
+            bigTrade: 1000,
+            smallTrade: 5,
+            pricePrecision: 2,
+          },
+          tETHBTC: {
+            bigTrade: 100,
+            smallTrade: 1,
+            pricePrecision: 5,
+          },
+          tXMRBTC: {
+            bigTrade: 100,
+            smallTrade: 1,
+            pricePrecision: 5,
+          },
+
+        },
+
         bids: {},
         bidScale: 1,
 
@@ -167,22 +213,11 @@
         volumeScale: 1,
 
         lastPrice: 0,
+        lastPricePrecision: 0,
         tradeHistory: [],
 
         onOpen(event) {
-          this.socket.send(JSON.stringify({
-            event: 'subscribe',
-            channel: 'book',
-            prec: 'P1',
-            len: '25',
-            symbol: 'tBTCUSD'
-          }));
-
-          this.socket.send(JSON.stringify({
-            event: 'subscribe',
-            channel: 'trades',
-            symbol: 'tBTCUSD'
-          }));
+          this.reconnectSymbol();
         },
 
         onMessage(data) {
@@ -219,6 +254,15 @@
         },
 
         init() {
+          // Watch some values
+          this.$watch('symbol', value => {
+            this.reconnectSymbol();
+          });
+
+          this.$watch('precision', value => {
+            this.reconnectSymbol();
+          });
+
           // start the websocket connection
           this.socket = new WebSocket('wss://api-pub.bitfinex.com/ws/2');
           this.socket.onopen = (e) => this.onOpen(e);
@@ -234,6 +278,58 @@
             this.onUpdateVolume();
             setInterval(() => { this.onUpdateVolume(); }, 60 * 1000);
           }, startOfNextMinute.valueOf() - now.valueOf());
+        },
+
+        reconnectSymbol() {
+          if (this.tradeChannel > 0) {
+            this.socket.send(JSON.stringify({
+              "event": "unsubscribe",
+              "chanId": this.tradeChannel,
+            }));
+            this.tradeChannel = -1;
+          }
+
+          if (this.bookChannel > 0) {
+            this.socket.send(JSON.stringify({
+              "event": "unsubscribe",
+              "chanId": this.bookChannel,
+            }));
+            this.bookChannel = -1;
+          }
+
+
+          this.bids = {};
+          this.bidScale =  1;
+
+          this.asks = {};
+          this.askScale = 1;
+
+          this.scale = 1;
+
+          this.buyVolume = 0;
+          this.sellVolume = 0;
+          this.volumeHistory = [];
+
+          this.maxVolume = 0;
+          this.volumeScale = 1;
+
+          this.lastPrice = 0;
+          this.lastPricePrecision = this.symbolMap[this.symbol].pricePrecision;
+          this.tradeHistory = [];
+
+          this.socket.send(JSON.stringify({
+            event: 'subscribe',
+            channel: 'book',
+            prec: this.precision,
+            len: '25',
+            symbol: this.symbol,
+          }));
+
+          this.socket.send(JSON.stringify({
+            event: 'subscribe',
+            channel: 'trades',
+            symbol: this.symbol,
+          }));
         },
 
         getKeys(orders) {
@@ -333,15 +429,16 @@
           this.volumeScale = 100 / (this.maxVolume === 0 ? 0.1 : this.maxVolume);
 
           const absAmt = Math.abs(amt);
-          if (absAmt > 0.1) {
+          if (absAmt > this.symbolMap[this.symbol].smallTrade) {
             this.tradeHistory.unshift({price, amt: absAmt, side: amt > 0 ? 'b' : 's', time: timestamp.format('HH:mm:ss')});
             this.tradeHistory = this.tradeHistory.slice(0, 50);
           }
         },
 
         tradeOpacity(amt) {
-          const clamped = Math.max(1, Math.min(10, amt));
-          return 1 - (clamped / 10);
+          const max = this.symbolMap[this.symbol].bigTrade;
+          const clamped = Math.max(0, Math.min(max, amt - 0.1));
+          return Math.min(1 - (clamped / max), 0.95);
         },
 
         lerp(from, to, t) {
