@@ -16,14 +16,14 @@
       <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tETHBTC'}" @click="symbol = 'tETHBTC'">ETHBTC</div>
       <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tXMRBTC'}" @click="symbol = 'tXMRBTC'">XMRBTC</div>
       <div class="flex-initial px-4">::</div>
-      <div class="flex-initial mx-1">Precision: <span x-text="bucketSize"></span></div>
-      <div class="cursor-pointer flex-initial mx-2" @click="updatePrecision(1)">+</div>
-      <div class="cursor-pointer flex-initial mx-2" @click="updatePrecision(-1)">-</div>
+      <div class="flex-initial mx-1" :title="`Current Zoom Level is ${bucketSize}`">Zoom</div>
+      <div class="cursor-pointer flex-initial mx-2" @click="updatePrecision(-1)">+</div>
+      <div class="cursor-pointer flex-initial mx-2" @click="updatePrecision(+1)">-</div>
       <div class="flex-grow px-4 text-right"><span class="font-sans text-red-600">&#9829;</span> Instabot</div>
     </div>
 
     <div style="max-width: 768px" class="flex px-1 py-1 ">
-      <div class="w-3/4 text-xs">
+      <div class="w-2/3 text-xs">
 
         <table class="w-auto">
           <thead>
@@ -34,6 +34,10 @@
             </tr>
           </thead>
           <tbody>
+            <tr>
+              <td class="text-xs px-8 py-1 text-center" colspan="3" x-text="waitingAsks.toFixed(2)"></td>
+            </tr>
+
             <template x-for="row in getKeys(asks)" :key="row">
               <tr>
                 <td class="text-xs px-1 py-0 w-16" x-text="row"></td>
@@ -67,41 +71,47 @@
                 </td>
               </tr>
             </template>
+
+            <tr>
+              <td class="text-xs px-8 py-1 text-center" colspan="3" x-text="waitingBids.toFixed(2)"></td>
+            </tr>
+
           </tbody>
         </table>
 
         <br>
+        1m Volume Split
         <svg style="width: 100%; height: 200px;">
           <style>
             .small {
               font: 12px sans-serif;
             }
           </style>
-          <line x1="0" y1="100" x2="200" y2="100" stroke="#cccccc" />
-          <line x1="0" y1="200" x2="200" y2="200" stroke="#cccccc" />
-          <line x1="0" y1="0" x2="200" y2="0" stroke="#cccccc" />
-          <text x="205" y="106" class="small">0</text>
-          <text x="205" y="200" class="small" x-text="(100 / volumeScale).toFixed(2)"></text>
-          <text x="205" y="12" class="small" x-text="(100 / volumeScale).toFixed(2)"></text>
+          <line x1="0" y1="100" x2="90%" y2="100" stroke="#cccccc" />
+          <line x1="0" y1="200" x2="90%" y2="200" stroke="#cccccc" />
+          <line x1="0" y1="0" x2="90%" y2="0" stroke="#cccccc" />
+          <text x="92%" y="106" class="small">0</text>
+          <text x="92%" y="200" class="small" x-text="(100 / volumeScale).toFixed(2)"></text>
+          <text x="92%" y="12" class="small" x-text="(100 / volumeScale).toFixed(2)"></text>
 
-          <text x="205" y="84" class="small" x-text="buyVolume.toFixed(2)"></text>
-          <text x="205" y="126" class="small" x-text="sellVolume.toFixed(2)"></text>
+          <text x="92%" y="84" class="small" x-text="buyVolume.toFixed(2)"></text>
+          <text x="92%" y="126" class="small" x-text="sellVolume.toFixed(2)"></text>
 
-          <rect x="190" y="100" width="5" :height="sellVolume * volumeScale" fill="#f05359" fill-opacity="0.5"></rect>
-          <rect x="190" :y="100 - (buyVolume * volumeScale)" width="5" :height="buyVolume * volumeScale" fill="#01a781"
+          <rect x="90%" y="100" width="5" :height="sellVolume * volumeScale" fill="#f05359" fill-opacity="0.5"></rect>
+          <rect x="90%" :y="100 - (buyVolume * volumeScale)" width="5" :height="buyVolume * volumeScale" fill="#01a781"
             fill-opacity="0.5"></rect>
           <template x-for="(item, index) in volumeHistory" :key="item">
             <g>
-              <rect :x="10 + (index * 11)" y="100" width="10" :height="item.s * volumeScale" fill="#f05359"
+              <rect :x="`${(index * (80/30))}%`" y="100" :width="`${80/32}%`" :height="item.s * volumeScale" fill="#f05359"
                 fill-opacity="0.8"></rect>
-              <rect :x="10 + (index * 11)" :y="100 - (item.b * volumeScale)" width="10" :height="item.b * volumeScale"
+              <rect :x="`${(index * (80/30))}%`" :y="100 - (item.b * volumeScale)" :width="`${80/32}%`" :height="item.b * volumeScale"
                 fill="#01a781" fill-opacity="0.8"></rect>
             </g>
           </template>
         </svg>
 
       </div>
-      <div class="w-1/4 text-xs pl-4">
+      <div class="w-1/3 text-xs pl-4">
 
         <table class="w-full">
           <thead>
@@ -194,8 +204,11 @@
         bids: {},
         asks: {},
 
+        waitingBids: 0,
+        waitingAsks: 0,
+
         rawData: [],
-        bucketSize: 1,
+        bucketSize: 4,
         bookRows: 25,
 
         scale: 1,
@@ -254,7 +267,7 @@
 
         onUpdateVolume() {
           this.volumeHistory.push({ b: this.buyVolume, s: this.sellVolume });
-          this.volumeHistory = this.volumeHistory.slice(-15);
+          this.volumeHistory = this.volumeHistory.slice(-30);
           this.maxVolume = this.volumeHistory.reduce((max, i) => Math.max(max, i.b, i.s), 0);
           this.volumeScale = 100 / (this.maxVolume === 0 ? 0.1 : this.maxVolume);
           this.buyVolume = 0;
@@ -312,6 +325,8 @@
           this.asks = {};
 
           this.scale = 1;
+          this.waitingBids = 0;
+          this.waitingAsks = 0;
 
           this.buyVolume = 0;
           this.sellVolume = 0;
@@ -384,6 +399,8 @@
           this.bids = bids.orders;
           this.asks = asks.orders;
           this.scale = 100 / Math.max(bids.runningTotal, asks.runningTotal);
+          this.waitingAsks = asks.runningTotal;
+          this.waitingBids = bids.runningTotal;
         },
 
         addOrders(key, msg) {
