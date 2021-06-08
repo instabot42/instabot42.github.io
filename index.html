@@ -16,16 +16,16 @@
       <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tETHBTC'}" @click="symbol = 'tETHBTC'">ETHBTC</div>
       <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tXMRBTC'}" @click="symbol = 'tXMRBTC'">XMRBTC</div>
       <div class="flex-initial px-4">::</div>
-      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': precision === 'P0'}" @click="precision = 'P0'">Tight</div>
-      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': precision === 'P1'}" @click="precision = 'P1'">Medium</div>
-      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': precision === 'P2'}" @click="precision = 'P2'">Wide</div>
+      <div class="flex-initial mx-1">Precision: <span x-text="bucketSize"></span></div>
+      <div class="cursor-pointer flex-initial mx-2" @click="updatePrecision(1)">+</div>
+      <div class="cursor-pointer flex-initial mx-2" @click="updatePrecision(-1)">-</div>
       <div class="flex-grow px-4 text-right"><span class="font-sans text-red-600">&#9829;</span> Instabot</div>
     </div>
 
     <div style="max-width: 768px" class="flex px-1 py-1 ">
       <div class="w-3/4 text-xs">
 
-        <table class="w-full">
+        <table class="w-auto">
           <thead>
             <tr>
               <th class="text-left">Price</th>
@@ -36,13 +36,11 @@
           <tbody>
             <template x-for="row in getKeys(asks)" :key="row">
               <tr>
-                <td class="text-xs px-2 py-0 w-min" x-text="row"></td>
-                <td class="text-xs text-right px-2 py-0 w-min" x-text="asks[row].amt.toFixed(2)"></td>
-                <td class="text-xs px-2 py-0 w-full">
+                <td class="text-xs px-1 py-0 w-16" x-text="row"></td>
+                <td class="text-xs text-right px-1 py-0 w-16" x-text="asks[row].amt.toFixed(2)"></td>
+                <td class="text-xs px-2 py-0 w-72">
                   <svg style="width: 100%; height: 15px;">
                     <rect x="0" y="0" :width="`${asks[row].amt * scale}%`" height="15" fill="#f05359" fill-opacity="0.5">
-                    </rect>
-                    <rect x="0" y="4" :width="`${asks[row].peak * scale}%`" height="7" fill="#f05359" fill-opacity="0.2">
                     </rect>
                     <rect x="0" y="0" :width="`${asks[row].sum * scale}%`" height="15" fill="#f05359" fill-opacity="0.2">
                     </rect>
@@ -57,13 +55,11 @@
 
             <template x-for="row in getKeys(bids)" :key="row">
               <tr>
-                <td class="text-xs px-2 py-0 w-min" x-text="row" :title="bids[row].amt"></td>
-                <td class="text-xs text-right px-2 py-0 w-min" x-text="bids[row].amt.toFixed(2)"></td>
-                <td class="text-xs px-2 py-0 w-full">
+                <td class="text-xs px-1 py-0 w-16" x-text="row" :title="bids[row].amt"></td>
+                <td class="text-xs text-right px-1 py-0 w-16" x-text="bids[row].amt.toFixed(2)"></td>
+                <td class="text-xs px-2 py-0 w-72">
                   <svg style="width: 100%; height: 15px;">
                     <rect x="0" y="0" :width="`${bids[row].amt * scale}%`" height="15" fill="#01a781" fill-opacity="0.5">
-                    </rect>
-                    <rect x="0" y="4" :width="`${bids[row].peak * scale}%`" height="7" fill="#01a781" fill-opacity="0.2">
                     </rect>
                     <rect x="0" y="0" :width="`${bids[row].sum * scale}%`" height="15" fill="#01a781" fill-opacity="0.2">
                     </rect>
@@ -196,10 +192,11 @@
         },
 
         bids: {},
-        bidScale: 1,
-
         asks: {},
-        askScale: 1,
+
+        rawData: [],
+        bucketSize: 1,
+        bookRows: 25,
 
         scale: 1,
 
@@ -289,6 +286,8 @@
             this.onUpdateVolume();
             setInterval(() => { this.onUpdateVolume(); }, 60 * 1000);
           }, startOfNextMinute.valueOf() - now.valueOf());
+
+          setInterval(() => { this.refreshOrderBookBuckets(); }, 300);
         },
 
         reconnectSymbol() {
@@ -310,10 +309,7 @@
 
 
           this.bids = {};
-          this.bidScale =  1;
-
           this.asks = {};
-          this.askScale = 1;
 
           this.scale = 1;
 
@@ -332,7 +328,7 @@
             event: 'subscribe',
             channel: 'book',
             prec: this.precision,
-            len: '25',
+            len: '250',
             symbol: this.symbol,
           }));
 
@@ -343,6 +339,11 @@
           }));
         },
 
+        updatePrecision(change) {
+          const updated = this.bucketSize + change;
+          this.bucketSize = Math.min(10, Math.max(1, updated));
+        },
+
         getKeys(orders) {
           return Object.keys(orders).sort((a, b) => b - a);
         },
@@ -351,38 +352,48 @@
           return Object.keys(orders).sort((a, b) => a - b);
         },
 
-        decay(orders, side) {
-          let sum = 0;
-          let index = 0;
-          const keys = side === 'bid' ? this.getKeys(orders) : this.getKeysRev(orders);
-          keys.forEach((key) => {
-            index += 1;
-            if (index < 25) {
-              sum += orders[key].amt;
-              const peak = orders[key].peak - 1;
-              orders[key].peak = peak < orders[key].amt ? orders[key].amt : peak;
-              orders[key].sum = sum;
-            } else {
-              delete orders[key];
-            }
-          });
+        generateBucket(raw) {
+          const orders = {};
+          let runningTotal = 0;
+          let count = 0;
+          for (let i=0; i < raw.length - this.bucketSize && count < this.bookRows; i += this.bucketSize) {
 
-          return sum;
-        },
-
-        addOrders(orders, key, msg) {
-          if (msg.count === 0) {
-            delete orders[key];
-          } else {
-            if (orders[key]) {
-              const peak = orders[key].peak;
-              orders[key] = { ...msg, peak: msg.amt > peak ? msg.amt : peak };
-            } else {
-              orders[key] = { ...msg, peak: msg.amt };
+            let amt = 0;
+            for (let j = 0; j < this.bucketSize; j += 1) {
+              amt += raw[i + j].amt;
             }
+
+            runningTotal += amt;
+            const key = `${raw[i].price}`;
+            const data = { ...raw[i], amt, sum: runningTotal };
+            orders[key] = data;
+            count += 1;
           }
 
-          return this.decay(orders, msg.side);
+          return { orders, runningTotal };
+        },
+
+        refreshOrderBookBuckets() {
+          const rawBids = this.rawData.filter(i => i.side === 'bid').sort((a,b) => b.price - a.price).slice(0, 300);;
+          const rawAsks = this.rawData.filter(i => i.side === 'ask').sort((a,b) => a.price - b.price).slice(0, 300);
+          this.rawData = rawBids.concat(rawAsks);
+
+          const bids = this.generateBucket(rawBids);
+          const asks = this.generateBucket(rawAsks);
+
+          this.bids = bids.orders;
+          this.asks = asks.orders;
+          this.scale = 100 / Math.max(bids.runningTotal, asks.runningTotal);
+        },
+
+        addOrders(key, msg) {
+          // remove old
+          this.rawData = this.rawData.filter((i) => i.price !== key);
+          if (msg.count === 0) {
+            return;
+          }
+
+          this.rawData.push(msg);
         },
 
         processOrderBook(orderBook) {
@@ -397,22 +408,12 @@
           }
 
           // extract data and clean it
-          const key = orderBook[0];
-          const count = orderBook[1];
+          const price = orderBook[0];
           const amt = Math.abs(orderBook[2]);
           const side = orderBook[2] > 0 ? 'bid' : 'ask';
-          const msg = { amt, side, count, sum: 0 };
+          const msg = { price, amt, side };
 
-          // stash it in the right place
-          if (side === 'bid') {
-            const sum = this.addOrders(this.bids, key, msg);
-            this.bidScale = 100 / (sum < 1 ? 1 : sum);
-          } else {
-            const sum = this.addOrders(this.asks, key, msg);
-            this.askScale = 100 / (sum < 1 ? 1 : sum);
-          }
-
-          this.scale = Math.min(this.bidScale, this.askScale);
+          this.addOrders(price, msg);
         },
 
         processTrade(trade) {
