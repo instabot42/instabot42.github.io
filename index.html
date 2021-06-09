@@ -482,7 +482,7 @@
           const absAmt = Math.abs(amt);
           if (absAmt >= this.symbolMap[this.symbol].smallTrade) {
             this.tradeHistory.unshift({ price, amt: absAmt, side: amt > 0 ? 'b' : 's', time: timestamp.format('HH:mm:ss') });
-            this.tradeHistory = this.tradeHistory.slice(0, 50);
+            this.tradeHistory = this.tradeHistory.slice(0, 60);
           }
         },
 
