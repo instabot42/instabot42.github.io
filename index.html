@@ -228,6 +228,22 @@
         lastPricePrecision: 0,
         tradeHistory: [],
 
+        startSocketConnection() {
+          // start the websocket connection
+          console.log('Socket opening...');
+          this.socket = new WebSocket('wss://api-pub.bitfinex.com/ws/2');
+          this.socket.onopen = (e) => this.onOpen(e);
+          this.socket.onmessage = (msg) => {
+            const data = JSON.parse(msg.data);
+            this.onMessage(data);
+          };
+          this.socket.onclose = (e) => {
+            console.log('Socket Closed', e.code);
+            this.socket = null;
+            setTimeout(() => this.startSocketConnection(), 500);
+          };
+        },
+
         onOpen(event) {
           this.reconnectSymbol();
         },
@@ -284,13 +300,8 @@
             this.reconnectSymbol();
           });
 
-          // start the websocket connection
-          this.socket = new WebSocket('wss://api-pub.bitfinex.com/ws/2');
-          this.socket.onopen = (e) => this.onOpen(e);
-          this.socket.onmessage = (msg) => {
-            const data = JSON.parse(msg.data);
-            this.onMessage(data);
-          };
+          // Start the socket connection
+          this.startSocketConnection();
 
           // Start a timer to track volume history
           const now = dayjs();
