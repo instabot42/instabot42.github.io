@@ -10,11 +10,16 @@
   <div class="font-mono" x-data="orderBook()" x-init="init()">
     <div class="flex flex-row bg-purple-300 text-xs px-1 py-1">
       <div class="flex-initial px-1">Bitfinex <span class="font-sans text-red-600">&#10501;</span></div>
-      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tBTCUSD'}" @click="symbol = 'tBTCUSD'">BTCUSD</div>
-      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tETHUSD'}" @click="symbol = 'tETHUSD'">ETHUSD</div>
-      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tXMRUSD'}" @click="symbol = 'tXMRUSD'">XMRUSD</div>
-      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tETHBTC'}" @click="symbol = 'tETHBTC'">ETHBTC</div>
-      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tXMRBTC'}" @click="symbol = 'tXMRBTC'">XMRBTC</div>
+      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tBTCUSD'}"
+        @click="symbol = 'tBTCUSD'">BTCUSD</div>
+      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tETHUSD'}"
+        @click="symbol = 'tETHUSD'">ETHUSD</div>
+      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tXMRUSD'}"
+        @click="symbol = 'tXMRUSD'">XMRUSD</div>
+      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tETHBTC'}"
+        @click="symbol = 'tETHBTC'">ETHBTC</div>
+      <div :class="{ 'cursor-pointer': true, 'flex-initial': true, 'mx-1': true, 'font-bold': symbol === 'tXMRBTC'}"
+        @click="symbol = 'tXMRBTC'">XMRBTC</div>
       <div class="flex-initial px-4">::</div>
       <div class="flex-initial mx-1" :title="`Current Zoom Level is ${bucketSize}`">Zoom</div>
       <div class="cursor-pointer flex-initial mx-2" @click="updatePrecision(-1)">+</div>
@@ -44,9 +49,11 @@
                 <td class="text-xs text-right px-1 py-0 w-16" x-text="asks[row].amt.toFixed(2)"></td>
                 <td class="text-xs px-2 py-0 w-72">
                   <svg style="width: 100%; height: 15px;">
-                    <rect x="0" y="0" :width="`${asks[row].amt * scale}%`" height="15" fill="#f05359" fill-opacity="0.5">
+                    <rect x="0" y="0" :width="`${asks[row].amt * scale}%`" height="15" fill="#f05359"
+                      fill-opacity="0.5">
                     </rect>
-                    <rect x="0" y="0" :width="`${asks[row].sum * scale}%`" height="15" fill="#f05359" fill-opacity="0.2">
+                    <rect x="0" y="0" :width="`${asks[row].sum * scale}%`" height="15" fill="#f05359"
+                      fill-opacity="0.2">
                     </rect>
                   </svg>
                 </td>
@@ -54,7 +61,8 @@
             </template>
 
             <tr>
-              <td class="text-xs px-8 py-1 text-center text-2xl font-bold" colspan="3" x-text="lastPrice.toFixed(lastPricePrecision)"></td>
+              <td class="text-xs px-8 py-1 text-center text-2xl font-bold" colspan="3"
+                x-text="lastPrice.toFixed(lastPricePrecision)"></td>
             </tr>
 
             <template x-for="row in getKeys(bids)" :key="row">
@@ -63,9 +71,11 @@
                 <td class="text-xs text-right px-1 py-0 w-16" x-text="bids[row].amt.toFixed(2)"></td>
                 <td class="text-xs px-2 py-0 w-72">
                   <svg style="width: 100%; height: 15px;">
-                    <rect x="0" y="0" :width="`${bids[row].amt * scale}%`" height="15" fill="#01a781" fill-opacity="0.5">
+                    <rect x="0" y="0" :width="`${bids[row].amt * scale}%`" height="15" fill="#01a781"
+                      fill-opacity="0.5">
                     </rect>
-                    <rect x="0" y="0" :width="`${bids[row].sum * scale}%`" height="15" fill="#01a781" fill-opacity="0.2">
+                    <rect x="0" y="0" :width="`${bids[row].sum * scale}%`" height="15" fill="#01a781"
+                      fill-opacity="0.2">
                     </rect>
                   </svg>
                 </td>
@@ -102,10 +112,10 @@
             fill-opacity="0.5"></rect>
           <template x-for="(item, index) in volumeHistory" :key="item">
             <g>
-              <rect :x="`${(index * (80/30))}%`" y="100" :width="`${80/32}%`" :height="item.s * volumeScale" fill="#f05359"
-                fill-opacity="0.8"></rect>
-              <rect :x="`${(index * (80/30))}%`" :y="100 - (item.b * volumeScale)" :width="`${80/32}%`" :height="item.b * volumeScale"
-                fill="#01a781" fill-opacity="0.8"></rect>
+              <rect :x="`${(index * (80/30))}%`" y="100" :width="`${80/32}%`" :height="item.s * volumeScale"
+                fill="#f05359" fill-opacity="0.8"></rect>
+              <rect :x="`${(index * (80/30))}%`" :y="100 - (item.b * volumeScale)" :width="`${80/32}%`"
+                :height="item.b * volumeScale" fill="#01a781" fill-opacity="0.8"></rect>
             </g>
           </template>
         </svg>
@@ -116,7 +126,8 @@
         <table class="w-full">
           <thead>
             <tr>
-              <th colspan="3" class="text-left">Trade History (><span x-text="symbolMap[symbol].smallTrade"></span>)</th>
+              <th colspan="3" class="text-left">Trade History (><span x-text="symbolMap[symbol].smallTrade"></span>)
+              </th>
             </tr>
             <tr>
               <th class="text-left">Time</th>
@@ -382,7 +393,7 @@
           const orders = {};
           let runningTotal = 0;
           let count = 0;
-          for (let i=0; i < raw.length - this.bucketSize && count < this.bookRows; i += this.bucketSize) {
+          for (let i = 0; i < raw.length - this.bucketSize && count < this.bookRows; i += this.bucketSize) {
 
             let amt = 0;
             for (let j = 0; j < this.bucketSize; j += 1) {
@@ -400,8 +411,8 @@
         },
 
         refreshOrderBookBuckets() {
-          const rawBids = this.rawData.filter(i => i.side === 'bid').sort((a,b) => b.price - a.price).slice(0, 300);;
-          const rawAsks = this.rawData.filter(i => i.side === 'ask').sort((a,b) => a.price - b.price).slice(0, 300);
+          const rawBids = this.rawData.filter(i => i.side === 'bid').sort((a, b) => b.price - a.price).slice(0, 300);;
+          const rawAsks = this.rawData.filter(i => i.side === 'ask').sort((a, b) => a.price - b.price).slice(0, 300);
           this.rawData = rawBids.concat(rawAsks);
 
           const bids = this.generateBucket(rawBids);
@@ -470,7 +481,7 @@
 
           const absAmt = Math.abs(amt);
           if (absAmt >= this.symbolMap[this.symbol].smallTrade) {
-            this.tradeHistory.unshift({price, amt: absAmt, side: amt > 0 ? 'b' : 's', time: timestamp.format('HH:mm:ss')});
+            this.tradeHistory.unshift({ price, amt: absAmt, side: amt > 0 ? 'b' : 's', time: timestamp.format('HH:mm:ss') });
             this.tradeHistory = this.tradeHistory.slice(0, 50);
           }
         },
