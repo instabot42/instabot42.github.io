@@ -155,8 +155,14 @@
       <div class="w-1/3 text-xs pl-4">
         Settings
         <div class="my-2">
-          <i class="fas fa-volume-off fa-lg fa-fw" x-show="!audio" @click="toggleAudio()"></i>
-          <i class="fas fa-volume-up fa-lg fa-fw" x-show="audio" @click="toggleAudio()"></i> Order Flow Alert
+          <span x-show="!audioEnabled" @click="toggleAudio()"><i class="fas fa-volume-off fa-lg fa-fw"></i> Enable
+            Audio</span>
+          <span x-show="audioEnabled" @click="toggleAudio()"><i class="fas fa-volume-up fa-lg fa-fw"></i> Disable
+            Audio</span>
+        </div>
+        <div class="my-4">
+          High rate of orders<br>
+          <span @click="nextHighRate()"><i class="fas fa-tachometer-alt fa-lg fa-fw"></i> <span x-text="highRateSound"></span></span>
         </div>
       </div>
     </div>
@@ -190,6 +196,8 @@
     }
   </script>
   <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/howler@2.2.1/dist/howler.min.js"
+    integrity="sha256-Z6YgsC4qiy8o007mNQmCgSXEmS8CGtzwXi6rzyP/ZiE=" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/dayjs@1.8.21/dayjs.min.js"></script>
 
   <script>
@@ -238,6 +246,7 @@
         rawData: [],
         bucketSize: 4,
         bookRows: 25,
+        timeLastBucketRefresh: 0,
 
         scale: 1,
 
@@ -256,8 +265,21 @@
         lastPricePrecision: 0,
         tradeHistory: [],
         tradeCount: 0,
+        timeLastTradeTest: 0,
 
-        audio: null,
+        audioEnabled: false,
+        tradeCountAlarm: 40,
+        highRateSound: 'Choir',
+        sounds: [
+          { url: 'audio/71778__bidone__steam-whistle.mp3', name: 'Train' },
+          { url: 'audio/571119__elfstonepress__boing-sfx.mp3', name: 'Water Drop' },
+          { url: 'audio/72126__kizilsungur__sweetalertsound2.wav', name: 'Sweet Alert' },
+          { url: 'audio/482651__joao-janz__bicicle-ring-1-1.wav', name: 'Bike Bell' },
+          { url: 'audio/536773__egomassive__siren.ogg', name: 'Siren' },
+          { url: 'audio/548085__basedmedia__alarm-02-d.wav', name: 'Alarm' },
+          { url: 'audio/555269__dean-raul-diarchangeli__choir-notification-ringtone-tone-e-major.mp3', name: 'Choir' },
+          { url: 'audio/570265__bluetshirt__point-in-space-2.ogg', name: 'Blip' },
+        ],
 
         startSocketConnection() {
           // start the websocket connection
@@ -342,8 +364,8 @@
             setInterval(() => { this.onUpdateVolume(); }, 60 * 1000);
           }, startOfNextMinute.valueOf() - now.valueOf());
 
-          setInterval(() => { this.refreshOrderBookBuckets(); }, 300);
-          setInterval(() => { this.tradeFlowAlarm(); }, 500);
+          // load in the audio
+          this.loadAudio();
         },
 
         reconnectSymbol() {
@@ -432,6 +454,14 @@
         },
 
         refreshOrderBookBuckets() {
+          // has it been long enough
+          const now = dayjs().valueOf();
+          if (now - this.timeLastBucketRefresh < 300) {
+            return;
+          }
+
+          // yes, so refresh
+          this.timeLastBucketRefresh = now;
           const rawBids = this.rawData.filter(i => i.side === 'bid').sort((a, b) => b.price - a.price).slice(0, 300);;
           const rawAsks = this.rawData.filter(i => i.side === 'ask').sort((a, b) => a.price - b.price).slice(0, 300);
           this.rawData = rawBids.concat(rawAsks);
@@ -454,6 +484,7 @@
           }
 
           this.rawData.push(msg);
+          this.refreshOrderBookBuckets();
         },
 
         processOrderBook(orderBook) {
@@ -505,11 +536,34 @@
             this.tradeCount += 1;
             this.tradeHistory.unshift({ price, amt: absAmt, side: amt > 0 ? 'b' : 's', time: timestamp.format('HH:mm:ss') });
             this.tradeHistory = this.tradeHistory.slice(0, 47);
+            this.tradeFlowAlarm();
           }
         },
 
+        nextHighRate() {
+          let index = this.sounds.findIndex(s => s.name === this.highRateSound);
+          if (index < 0) {
+            index = 0;
+          }
+
+          index += 1;
+          if (index >= this.sounds.length) {
+            index = 0;
+          }
+
+          this.highRateSound = this.sounds[index].name;
+          this.playBong();
+        },
+
         tradeFlowAlarm() {
-          if (this.tradeCount > 20) {
+          const now = dayjs().valueOf();
+          if (now - this.timeLastTradeTest < 500) {
+            // not time to test is again
+            return;
+          }
+
+          this.timeLastTradeTest = now;
+          if (this.tradeCount > this.tradeCountAlarm/2) {
             this.playBong();
           }
 
@@ -536,34 +590,32 @@
         },
 
         toggleAudio() {
-          if (this.audio === null) {
-            this.audio = new AudioContext();
+          if (!this.audioEnabled) {
+            this.audioEnabled = true;
             this.playBong();
           } else {
-            this.audio = null;
+            this.audioEnabled = false;
           }
         },
 
         playBong() {
           // nothing if audio is disabled.
-          if (this.audio === null) {
+          if (!this.audioEnabled) {
             return;
           }
 
-          // play a bong
-          this.playTone(261.6, "sine", 1);
-          setTimeout(() => this.playTone(329.6, "sine", 1), 200);
+          const index = this.sounds.findIndex(s => s.name === this.highRateSound);
+          if (index < 0) {
+            return;
+          }
+
+          this.sounds[index].wave.play();
         },
 
-        playTone(frequency, type, duration) {
-          const o = this.audio.createOscillator();
-          const g = this.audio.createGain();
-          o.type = type;
-          o.connect(g);
-          o.frequency.value = frequency;
-          g.connect(this.audio.destination);
-          o.start(0);
-          g.gain.exponentialRampToValueAtTime(0.000001, this.audio.currentTime + duration);
+        loadAudio() {
+          this.sounds = this.sounds.map((sound) => (
+            { ...sound, wave: new Howl({ src: [sound.url] }) }
+          ));
         }
       }
     }
