@@ -121,7 +121,7 @@
     </div>
     <div style="max-width: 768px" class="flex px-1 py-1 ">
       <div class="w-2/3 text-xs">
-        1m Volume Split
+        1m Volume last 30m<br>Sum Buys: <span class="font-bold" x-text="(totalBuys + buyVolume).toFixed(1)"></span> Sells: <span class="font-bold" x-text="(totalSells + sellVolume).toFixed(1)"></span> All: <span class="font-bold" x-text="(totalVolume + buyVolume + sellVolume).toFixed(1)"></span>
         <svg style="width: 100%; height: 200px;">
           <style>
             .small {
@@ -195,7 +195,8 @@
       }
     }
   </script>
-  <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.js" integrity="sha256-9R44V6iCmVV7oDivSSvnPm4oYYirH6gC7ft09IS4j+o=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/howler@2.2.1/dist/howler.min.js"
     integrity="sha256-Z6YgsC4qiy8o007mNQmCgSXEmS8CGtzwXi6rzyP/ZiE=" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/dayjs@1.8.21/dayjs.min.js"></script>
@@ -256,6 +257,9 @@
 
         buyVolume: 0,
         sellVolume: 0,
+        totalBuys: 0,
+        totalSells: 0,
+        totalVolume: 0,
         volumeHistory: [],
 
         maxVolume: 0,
@@ -341,6 +345,11 @@
           this.volumeScale = 100 / (this.maxVolume === 0 ? 0.1 : this.maxVolume);
           this.buyVolume = 0;
           this.sellVolume = 0;
+
+          // for the totals
+          this.totalBuys = this.volumeHistory.reduce((sum, i) => sum + i.b, 0);
+          this.totalSells = this.volumeHistory.reduce((sum, i) => sum + i.s, 0);
+          this.totalVolume = this.totalBuys + this.totalSells;
         },
 
         init() {
@@ -395,6 +404,9 @@
 
           this.buyVolume = 0;
           this.sellVolume = 0;
+          this.totalBuys = 0;
+          this.totalSells = 0;
+          this.totalVolume = 0;
           this.volumeHistory = [];
 
           this.maxVolume = 0;
