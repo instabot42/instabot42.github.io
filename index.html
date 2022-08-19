@@ -122,8 +122,11 @@
     <div style="max-width: 768px" class="flex px-1 py-1 ">
       <div class="w-2/3 text-xs">
         1m Volume last 30m<br>
-        Sum Buys: <span class="font-bold" x-text="(totalBuys + buyVolume).toFixed(1)"></span> Sells: <span class="font-bold" x-text="(totalSells + sellVolume).toFixed(1)"></span> All: <span class="font-bold" x-text="(totalVolume + buyVolume + sellVolume).toFixed(1)"></span><br>
-        Buy:Sell ratio <span class="font-bold"><span x-text="((totalBuys + buyVolume) / (totalSells + sellVolume)).toFixed(2)"></span>:1</span>
+        Sum Buys: <span class="font-bold" x-text="(totalBuys + buyVolume).toFixed(1)"></span> Sells: <span
+          class="font-bold" x-text="(totalSells + sellVolume).toFixed(1)"></span> All: <span class="font-bold"
+          x-text="(totalVolume + buyVolume + sellVolume).toFixed(1)"></span><br>
+        Buy:Sell ratio <span class="font-bold"><span
+            x-text="((totalBuys + buyVolume) / (totalSells + sellVolume)).toFixed(2)"></span>:1</span>
         <svg style="width: 100%; height: 200px;">
           <style>
             .small {
@@ -164,7 +167,8 @@
         </div>
         <div class="my-4">
           High rate of orders<br>
-          <span @click="nextHighRate()"><i class="fas fa-tachometer-alt fa-lg fa-fw"></i> <span x-text="highRateSound"></span></span>
+          <span @click="nextHighRate()"><i class="fas fa-tachometer-alt fa-lg fa-fw"></i> <span
+              x-text="highRateSound"></span></span>
         </div>
       </div>
     </div>
@@ -177,6 +181,7 @@
   </div>
 
   <script>
+    // Shim to allow <template> to work in SVG's on some browsers...
     var templates = document.querySelectorAll('svg template');
     var el, template, attribs, attrib, count, child, content;
     for (var i = 0; i < templates.length; i++) {
@@ -198,7 +203,8 @@
     }
   </script>
 
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.js" integrity="sha256-9R44V6iCmVV7oDivSSvnPm4oYYirH6gC7ft09IS4j+o=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.js"
+    integrity="sha256-9R44V6iCmVV7oDivSSvnPm4oYYirH6gC7ft09IS4j+o=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/howler@2.2.1/dist/howler.min.js"
     integrity="sha256-Z6YgsC4qiy8o007mNQmCgSXEmS8CGtzwXi6rzyP/ZiE=" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/dayjs@1.8.21/dayjs.min.js"></script>
@@ -578,7 +584,7 @@
           }
 
           this.timeLastTradeTest = now;
-          if (this.tradeCount > this.tradeCountAlarm/2) {
+          if (this.tradeCount > this.tradeCountAlarm / 2) {
             this.playBong();
           }
 
