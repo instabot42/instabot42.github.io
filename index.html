@@ -122,11 +122,10 @@
     <div style="max-width: 768px" class="flex px-1 py-1 ">
       <div class="w-2/3 text-xs">
         1m Volume last 30m<br>
-        Sum Buys: <span class="font-bold" x-text="(totalBuys + buyVolume).toFixed(1)"></span> Sells: <span
-          class="font-bold" x-text="(totalSells + sellVolume).toFixed(1)"></span> All: <span class="font-bold"
-          x-text="(totalVolume + buyVolume + sellVolume).toFixed(1)"></span><br>
-        Buy:Sell ratio <span class="font-bold"><span
-            x-text="((totalBuys + buyVolume) / (totalSells + sellVolume)).toFixed(2)"></span>:1</span>
+        Sum Buys:<span class="font-bold" x-text="(totalBuys + buyVolume).toFixed(1)"></span>
+        Sells:<span class="font-bold" x-text="(totalSells + sellVolume).toFixed(1)"></span>
+        All:<span class="font-bold" x-text="(totalVolume + buyVolume + sellVolume).toFixed(1)"></span><br>
+        Buy:Sell ratio <span class="font-bold"><span x-text="ratioBuys"></span>:<span x-text="ratioSells"></span></span>
         <svg style="width: 100%; height: 200px;">
           <style>
             .small {
@@ -268,6 +267,9 @@
         totalBuys: 0,
         totalSells: 0,
         totalVolume: 0,
+        ratioSells: 1,
+        ratioBuys: 1,
+
         volumeHistory: [],
 
         maxVolume: 0,
@@ -558,6 +560,17 @@
             this.tradeHistory.unshift({ price, amt: absAmt, side: amt > 0 ? 'b' : 's', time: timestamp.format('HH:mm:ss') });
             this.tradeHistory = this.tradeHistory.slice(0, 47);
             this.tradeFlowAlarm();
+          }
+
+          // ratio
+          const bVol = this.totalBuys + this.buyVolume
+          const sVol = this.totalSells + this.sellVolume
+          if (bVol < sVol) {
+            this.ratioBuys = 1
+            this.ratioSells = (sVol / bVol).toFixed(2)
+          } else {
+            this.ratioSells = 1
+            this.ratioBuys = (bVol / sVol).toFixed(2)
           }
         },
 
